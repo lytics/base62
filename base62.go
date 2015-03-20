@@ -18,7 +18,7 @@ type Encoding struct {
 	decodeMap [256]byte
 }
 
-const encodeStd = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-0123456789"
+const encodeStd = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-012345678"
 
 // NewEncoding returns a new Encoding defined by the given alphabet,
 // which must be a 62-byte string.
