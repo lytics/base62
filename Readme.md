@@ -1,7 +1,7 @@
 # [Base62.go](http://libraries.io/go/github.com%2Fandrew%2Fbase62.go)
 
-#### Original author: Andrew Nesbitt
-#### Forked from: https://github.com/andrew/base62.go
+*Original author*: Andrew Nesbitt
+*Forked from*: https://github.com/andrew/base62.go
 
 An attempt at a go library to provide Base62 encoding, perfect for URL shorteners.
 
