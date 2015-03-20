@@ -10,11 +10,11 @@ An attempt at a go library to provide Base62 encoding, perfect for URL safe valu
 
 	// Encode a value
 	urlVal := "http://www.biglongurl.io/?utm_content=content&utm_campaign=campaign"
-	encodedUrl := StdEncoding.EncodeToString([]byte(urlVal))
+	encodedUrl := base62.StdEncoding.EncodeToString([]byte(urlVal))
 	
 
 	// Unencoded it
-	byteUrl, err := StdEncoding.DecodeString(encodedUrl)
+	byteUrl, err := base62.StdEncoding.DecodeString(encodedUrl)
 
 
 ```
