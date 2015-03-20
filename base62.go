@@ -1,12 +1,12 @@
 // heavily influcened by http://golang.org/src/pkg/encoding/base64/base64.go
 
-// Package base62 implements base62 encoding 
+// Package base62 implements base62 encoding
 package base62
 
 import (
+	"errors"
+	"fmt"
 	"io"
-	"os"
-	"strconv"
 )
 
 /*
@@ -100,7 +100,7 @@ func (enc *Encoding) EncodeToString(src []byte) string {
 }
 
 type encoder struct {
-	err  os.Error
+	err  error
 	enc  *Encoding
 	w    io.Writer
 	buf  [3]byte    // buffered data waiting to be encoded
@@ -108,7 +108,7 @@ type encoder struct {
 	out  [1024]byte // output buffer
 }
 
-func (e *encoder) Write(p []byte) (n int, err os.Error) {
+func (e *encoder) Write(p []byte) (n int, err error) {
 	if e.err != nil {
 		return 0, e.err
 	}
@@ -160,7 +160,7 @@ func (e *encoder) Write(p []byte) (n int, err os.Error) {
 
 // Close flushes any pending output from the encoder.
 // It is an error to call Write after calling Close.
-func (e *encoder) Close() os.Error {
+func (e *encoder) Close() error {
 	// If there's anything left in the buffer, flush it out
 	if e.err == nil && e.nbuf > 0 {
 		e.enc.Encode(e.out[0:], e.buf[0:e.nbuf])
@@ -187,17 +187,17 @@ func (enc *Encoding) EncodedLen(n int) int { return (n + 2) / 3 * 4 }
  * Decoder
  */
 
-type CorruptInputError int64
+type CorruptInputError error
 
-func (e CorruptInputError) String() string {
-	return "illegal base62 data at input byte " + strconv.Itoa64(int64(e))
-}
+// func (e CorruptInputError) String() error {
+// 	return "illegal base62 data at input byte " + strconv.FormatInt(int64(e), 10)
+// }
 
 // decode is like Decode but returns an additional 'end' value, which
 // indicates if end-of-message padding was encountered and thus any
 // additional data is an error.  decode also assumes len(src)%4==0,
 // since it is meant for internal use.
-func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err os.Error) {
+func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err error) {
 	for i := 0; i < len(src)/4 && !end; i++ {
 		// Decode quantum using the base62 alphabet
 		var dbuf [4]byte
@@ -210,7 +210,7 @@ func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err os.Error) {
 				// We've reached the end and there's
 				// padding
 				if src[i*4+3] != '=' {
-					return n, false, CorruptInputError(i*4 + 2)
+					return n, false, errors.New(fmt.Sprintf("%d", i*4+2))
 				}
 				dlen = j
 				end = true
@@ -218,7 +218,7 @@ func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err os.Error) {
 			}
 			dbuf[j] = enc.decodeMap[in]
 			if dbuf[j] == 0xFF {
-				return n, false, CorruptInputError(i*4 + j)
+				return n, false, errors.New(fmt.Sprintf("%d", i*4+j))
 			}
 		}
 
@@ -244,9 +244,9 @@ func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err os.Error) {
 // DecodedLen(len(src)) bytes to dst and returns the number of bytes
 // written.  If src contains invalid base62 data, it will return the
 // number of bytes successfully written and CorruptInputError.
-func (enc *Encoding) Decode(dst, src []byte) (n int, err os.Error) {
+func (enc *Encoding) Decode(dst, src []byte) (n int, err error) {
 	if len(src)%4 != 0 {
-		return 0, CorruptInputError(len(src) / 4 * 4)
+		return 0, errors.New(fmt.Sprintf("%d", len(src)/4*4))
 	}
 
 	n, _, err = enc.decode(dst, src)
@@ -254,14 +254,14 @@ func (enc *Encoding) Decode(dst, src []byte) (n int, err os.Error) {
 }
 
 // DecodeString returns the bytes represented by the base62 string s.
-func (enc *Encoding) DecodeString(s string) ([]byte, os.Error) {
+func (enc *Encoding) DecodeString(s string) ([]byte, error) {
 	dbuf := make([]byte, enc.DecodedLen(len(s)))
 	n, err := enc.Decode(dbuf, []byte(s))
 	return dbuf[:n], err
 }
 
 type decoder struct {
-	err    os.Error
+	err    error
 	enc    *Encoding
 	r      io.Reader
 	end    bool       // saw end of message
@@ -271,7 +271,7 @@ type decoder struct {
 	outbuf [1024 / 4 * 3]byte
 }
 
-func (d *decoder) Read(p []byte) (n int, err os.Error) {
+func (d *decoder) Read(p []byte) (n int, err error) {
 	if d.err != nil {
 		return 0, d.err
 	}
