@@ -6,19 +6,19 @@ package base62
 import (
 	"errors"
 	"fmt"
+	u "github.com/araddon/gou"
 	"io"
 )
 
-/*
- * Encodings
- */
+var _ = u.EMPTY
 
+// Encodings
 type Encoding struct {
 	encode    string
 	decodeMap [256]byte
 }
 
-const encodeStd = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-012345678"
+const encodeStd = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-0123456789."
 
 // NewEncoding returns a new Encoding defined by the given alphabet,
 // which must be a 62-byte string.
@@ -80,9 +80,9 @@ func (enc *Encoding) Encode(dst, src []byte) {
 
 		// Pad the final quantum
 		if len(src) < 3 {
-			dst[3] = '9'
+			dst[3] = '+'
 			if len(src) < 2 {
-				dst[2] = '9'
+				dst[2] = '+'
 			}
 			break
 		}
@@ -206,10 +206,10 @@ func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err error) {
 	dbufloop:
 		for j := 0; j < 4; j++ {
 			in := src[i*4+j]
-			if in == '9' && j >= 2 && i == len(src)/4-1 {
+			if in == '+' && j >= 2 && i == len(src)/4-1 {
 				// We've reached the end and there's
 				// padding
-				if src[i*4+3] != '9' {
+				if src[i*4+3] != '+' {
 					return n, false, errors.New(fmt.Sprintf("%d", i*4+2))
 				}
 				dlen = j
