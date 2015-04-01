@@ -245,8 +245,11 @@ func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err error) {
 // written.  If src contains invalid base62 data, it will return the
 // number of bytes successfully written and CorruptInputError.
 func (enc *Encoding) Decode(dst, src []byte) (n int, err error) {
-	if len(src)%4 != 0 {
-		return 0, errors.New(fmt.Sprintf("%d", len(src)/4*4))
+	pad := len(src) % 4
+	if pad != 0 {
+		for i := 0; i < pad; i++ {
+			src = append(src, '+')
+		}
 	}
 
 	n, _, err = enc.decode(dst, src)
