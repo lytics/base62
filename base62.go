@@ -6,11 +6,8 @@ package base62
 import (
 	"errors"
 	"fmt"
-	u "github.com/araddon/gou"
 	"io"
 )
-
-var _ = u.EMPTY
 
 // Encodings
 type Encoding struct {
